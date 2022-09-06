@@ -1,7 +1,7 @@
-# Nuxt 3 Minimal Starter
+# Nuxt 3 Minimal Starter with Firebase and Vuetify
 
-Look at the [nuxt 3 documentation](https://v3.nuxtjs.org) to learn more.
-
+Nuxt3を利用したFirebase Authenticationのサンプルになります。
+UIフレームワークはVuetifyを利用。
 ## Setup
 
 Make sure to install the dependencies:
