@@ -1,16 +1,26 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
-	console.log('auth middle ware callded');
-
 	if (!process.server) {
 		const { checkAuthState, getRedirect, token } = useAuth();
-		await checkAuthState();
 
+		// 特定ページのみログイン状態を初期化後にレンダリングする
+		if (to.name !== 'index') {
+			await checkAuthState();
+		} else {
+			// リダイレクトから遷移した場合は値設定済み
+			const redirectFlg = sessionStorage.getItem('redirect');
+			// リダイレクト結果を受け取る
+			if (redirectFlg) {
+				// 先にトップページを描画し、ローディング状態を表示する。
+				checkAuthState();
+				getRedirect().then((redirect) => {
+					sessionStorage.removeItem('redirect');
+				});
+			} else {
+				await checkAuthState();
+			}
+		}
 		if (!token.value) {
 			const config = useRuntimeConfig();
-			// リダイレクト結果を受け取る
-			await getRedirect().then((redirect) => {
-				console.log(redirect);
-			});
 			// ログインページの無限遷移を防止
 			if (to.name !== 'index') {
 				return navigateTo('/');

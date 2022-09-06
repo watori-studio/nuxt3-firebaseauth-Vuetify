@@ -15,16 +15,10 @@ import type { Ref } from 'vue';
 export const useAuth = () => {
 	const token = useState<string>('token', () => null);
 
-	const loginProgress: Ref<boolean> = useState<boolean>(
-		'loginProgress',
-		() => false
-	);
+	const loginProgress = useState<boolean>('loginProgress', () => null);
 
 	// stateの更新処理
 	const switchProgess = (loginProgress: Ref<boolean>) => (value: boolean) => {
-		console.log(
-			'switchProgess---------------------------------------------------------------- '
-		);
 		loginProgress.value = value;
 	};
 
@@ -36,15 +30,12 @@ export const useAuth = () => {
 	}
 
 	async function getRedirect() {
-		console.log('get Redirect');
 		useAuth().switchProgess(true);
 		return await new Promise<OAuthCredential>((resolve, reject) => {
 			const auth = getAuth();
 			getRedirectResult(auth)
 				.then((result) => {
-					console.log('Twitter Redirec Login success');
 					useAuth().switchProgess(false);
-
 					if (result) {
 						// This gives you a the Twitter OAuth 1.0 Access Token and Secret.
 						// You can use these server side with your app's credentials to access the Twitter API.
@@ -52,7 +43,6 @@ export const useAuth = () => {
 							TwitterAuthProvider.credentialFromResult(result);
 						//const token = credential.accessToken;
 						const secret = credential.secret;
-						console.log(token);
 						token.value = secret;
 						const user = result.user;
 						resolve(credential);
@@ -78,6 +68,7 @@ export const useAuth = () => {
 		return await new Promise<OAuthCredential>((resolve, reject) => {
 			signInWithPopup(auth, provider)
 				.then((result) => {
+					console.log(result);
 					// This gives you a the Twitter OAuth 1.0 Access Token and Secret.
 					// You can use these server side with your app's credentials to access the Twitter API.
 					const credential =
@@ -119,9 +110,7 @@ export const useAuth = () => {
 		});
 	}
 	async function checkAuthState() {
-		console.log('checkAuthState');
 		const auth = getAuth();
-		console.log(auth.currentUser);
 		return await new Promise<void>((resolve, reject) => {
 			// client only
 			if (process.server) return resolve();

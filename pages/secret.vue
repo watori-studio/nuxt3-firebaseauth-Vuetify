@@ -33,7 +33,7 @@ onUpdated(() => {
 </script>
 <template>
 	<div>
-		<NuxtLayout name="main">
+		<NuxtLayout v-if="mounted" name="main">
 			このページは認証済みユーザのみが閲覧できます。
 			<div>
 				<v-row>

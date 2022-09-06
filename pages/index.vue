@@ -1,5 +1,12 @@
 <script setup>
-import { ref, onBeforeMount, onMounted, onBeforeUpdate, onUpdated } from 'vue';
+import {
+	ref,
+	onBeforeMount,
+	watch,
+	onMounted,
+	onBeforeUpdate,
+	onUpdated,
+} from 'vue';
 
 definePageMeta({
 	layout: false,
@@ -9,10 +16,15 @@ definePageMeta({
 // Vuetify初期化後に読み込み
 const mounted = ref(false);
 const drawer = ref(true);
-const dispTopPage = ref(false);
+const dispLoading = ref(false);
+dispLoading.value = useAuth().loginProgress.value;
+
 // #region function
+
 const loginRedirect = async () => {
 	alert('リダイレクトログインします');
+	sessionStorage.setItem('redirect', true);
+	await navigateTo('/secret');
 	useAuth()
 		.signInWithTwitterRedirect()
 		.then((result) => {
@@ -22,6 +34,7 @@ const loginRedirect = async () => {
 
 const loginPopUp = async () => {
 	alert('ポップアップログインします');
+	dispLoading.value = true;
 	useAuth()
 		.PopUpLogin()
 		.then((result) => {
@@ -36,6 +49,12 @@ const navigateToSecretPage = async () => {
 	navigateTo('/secret');
 };
 
+watch(useAuth().loginProgress, () => {
+	if (useAuth().token) {
+		navigateTo('/secret');
+	}
+});
+
 // #endregion
 onBeforeMount(() => {
 	console.log('index page  on before mount');
@@ -44,13 +63,6 @@ onBeforeMount(() => {
 onMounted(() => {
 	console.log('index page on mount');
 	mounted.value = true;
-	// リダイレクト結果の取得
-	const redirected = useAuth()
-		.getRedirect()
-		.then((result) => {
-			//console.log(result);
-			//alert(result);
-		});
 });
 
 onBeforeUpdate(() => {
@@ -64,60 +76,88 @@ onUpdated(() => {
 <template>
 	<div>
 		<NuxtLayout name="full">
-			<div>
-				<v-row>
-					<v-col>
-						リダイレクトログイン
-						<v-btn
-							style="text-transform: none; font-weight: bold"
-							color="info"
-							to="/"
-							class="mr-4"
-							block
-							submit
-							@click="loginRedirect()"
-						>
-							<v-icon size="large">mdi-twitter</v-icon>Continu
-							with Twitter</v-btn
-						></v-col
-					></v-row
-				>
-				<v-row>
-					<v-col>
-						ポップアップログイン
-						<v-btn
-							style="text-transform: none; font-weight: bold"
-							color="info"
-							to="/"
-							class="mr-4"
-							block
-							submit
-							@click="loginPopUp()"
-						>
-							<v-icon size="large">mdi-twitter</v-icon>Continu
-							with Twitter</v-btn
-						></v-col
-					></v-row
-				>
-				<v-row
-					><v-col
-						><a href="http://localhost:3000/secret" target="_blank"
-							>ユーザー専用ページを開きます(ログインページにリダイレクトされます)</a
-						></v-col
+			<div v-if="mounted">
+				<div v-if="dispLoading">
+					<v-overlay
+						:model-value="useAuth().token"
+						class="align-center justify-center"
 					>
-				</v-row>
-				<v-row
-					><v-col
-						><v-btn
-							style="text-transform: none; font-weight: bold"
-							to="/"
-							class="mr-4"
-							block
-							@click="navigateToSecretPage()"
-							>navigateTo('/secret')
-						</v-btn></v-col
-					>
-				</v-row>
+						<v-progress-circular
+							indeterminate
+							size="64"
+							color="primary"
+							>ログイン中です</v-progress-circular
+						>
+					</v-overlay>
+				</div>
+				<div v-else>
+					<div>
+						<v-row>
+							<v-col>
+								リダイレクトログイン
+								<v-btn
+									style="
+										text-transform: none;
+										font-weight: bold;
+									"
+									color="info"
+									to="/"
+									class="mr-4"
+									block
+									submit
+									@click="loginRedirect()"
+								>
+									<v-icon size="large">mdi-twitter</v-icon
+									>Continu with Twitter</v-btn
+								></v-col
+							></v-row
+						>
+						<v-row>
+							<v-col>
+								ポップアップログイン
+								<v-btn
+									style="
+										text-transform: none;
+										font-weight: bold;
+									"
+									color="info"
+									to="/"
+									class="mr-4"
+									block
+									submit
+									@click="loginPopUp()"
+								>
+									<v-icon size="large">mdi-twitter</v-icon
+									>Continu with Twitter</v-btn
+								></v-col
+							></v-row
+						>
+						<v-row
+							><v-col
+								><a
+									href="http://localhost:3000/secret"
+									target="_blank"
+									>ユーザー専用ページを開きます(ログインページにリダイレクトされます)</a
+								></v-col
+							>
+						</v-row>
+						<v-row
+							><v-col
+								><v-btn
+									style="
+										text-transform: none;
+										font-weight: bold;
+									"
+									to="/"
+									class="mr-4"
+									block
+									@click="navigateToSecretPage()"
+									>navigateTo('/secret')
+								</v-btn></v-col
+							>
+						</v-row>
+					</div>
+				</div>
 			</div>
 		</NuxtLayout>
 	</div>
